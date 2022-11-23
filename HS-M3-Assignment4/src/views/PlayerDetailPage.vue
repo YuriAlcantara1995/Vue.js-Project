@@ -1,12 +1,14 @@
 <script setup>
-    import PlayerList from '../components/players/PlayerList.vue';
+    import PlayerDetail from '../components/players/PlayerDetail.vue';
     import Loading from '../components/utils/Loading.vue';
+
+    const { id } = defineProps(['id']);
 </script>
 
 <template>
     <div class="bc-light-blue h-100 overflow-auto d-flex flex-column justify-content-center">
         <Suspense>
-            <PlayerList class="h-100 w-100"/>
+            <PlayerDetail :player-id="id" class="h-100 w-100"/>
             <template #fallback>
                 <Loading/>
             </template>

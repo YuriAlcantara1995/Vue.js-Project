@@ -21,6 +21,6 @@
 <style scoped>
 .home {
     color: #1C3260;
-    background-image: linear-gradient(180deg, white 0%, #E0FFFF 100%);
+    background-color: #F0F8FF;
 }
 </style>

@@ -5,6 +5,7 @@ const Home = () => import('../views/HomePage.vue');
 const Nations = () => import('../views/NationListPage.vue');
 const NationDetail = () => import('../views/NationDetailPage.vue')
 const Players = () => import('../views/PlayerListPage.vue');
+const PlayerDetail = () => import('../views/PlayerDetailPage.vue')
 
 
 const routes = [
@@ -20,7 +21,7 @@ const routes = [
   },
   {
     path: '/nations/:id',
-    component: Nations,
+    component: NationDetail,
     props: true,
     children: [
       { path: '', name: 'nation-detail', component: NationDetail },
@@ -30,6 +31,14 @@ const routes = [
     path: '/players',
     name: 'players',
     component: Players,
+  },
+  {
+    path: '/players/:id',
+    component: PlayerDetail,
+    props: true,
+    children: [
+      { path: '', name: 'player-detail', component: PlayerDetail },
+    ],
   }
 ];
 

@@ -1,131 +1,76 @@
 <script setup>
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
-import { ref, computed } from 'vue';
+import { ref, computed, watch, reactive } from 'vue';
 import TableButton from '../utils/TableButton.vue';
+import dataService from '../../utils/dataService.js';
 
 const nations = ref([]);
-const options = {
-  method: 'GET',
-  headers: {
-    'accept': 'application/json',
-    'X-AUTH-TOKEN': '9a807e49-440b-4ab5-8ec2-25491f516431'
-  }
-};
-const urlBase = 'https://futdb.app/api/';
-const currentPage = ref(1);
-const searchByName = ref('');
-const perPage = ref(10);
 const pagination = ref({});
+const filter = reactive({
+  "name": ""
+});
 
-async function getData() {
-  //Get first page 
-  let res = await fetch(urlBase + 'nations', options);
-  if (!res.ok) {
-    throw new Error();
-  }
-  let response = await res.json();
+async function getData(page = 1) {
+  let response = await dataService.searchNationsOffline(page, filter);
   pagination.value = response.pagination;
   nations.value = response.items;
-
-  //Get rest of information
-  for (let i = 2; i <= pagination.value.pageTotal; i++) {
-    console.log(i);
-    res = await fetch(urlBase + 'nations?page=' + i.toString(), options);
-    if (!res.ok) {
-      throw new Error();
-    }
-    response = await res.json();
-    nations.value = nations.value.concat(response.items);
-  }
-
-  let imageOptions = {
-    method: 'GET',
-    headers: {
-      'accept': 'image/png',
-      'X-AUTH-TOKEN': '9a807e49-440b-4ab5-8ec2-25491f516431'
-    }
-  }
-  for (let i = 0; i <= nations.value.length; i++) {
-    let id = nations.value[i].id;
-    try {
-      let res = await fetch(urlBase + 'nations/' + id.toString() + '/image', imageOptions);
-      if (!res.ok) {
-        throw new Error();
-      }
-      const imageBlob = await res.blob();
-      const imageObjectURL = URL.createObjectURL(imageBlob);
-      nations.value[i].flag = imageObjectURL;
-
-    } catch (e) {
-      nations.value[i].flag = '';
-      console.log(e);
-    }
-  }
 }
 
-getData();
+await getData();
 
 const firstRow = computed(() => {
-  const firstRow = (currentPage.value - 1) * perPage.value;
+  const firstRow = (pagination.value.pageCurrent - 1) * pagination.value.itemsPerPage;
   return firstRow;
 });
 
 const lastRow = computed(() => {
   const lastRow = Math.min(
-    (currentPage.value - 1) * perPage.value + perPage.value,
-    filteredNations.value.length
+    pagination.value.pageCurrent * pagination.value.itemsPerPage,
+    pagination.value.countTotal
   );
   return lastRow;
 });
 
-const filteredNations = computed(() => {
-  console.log(searchByName.value);
-
-  let filtered = nations.value.filter((x) =>
-    x.name.toLowerCase().includes(searchByName.value.toLowerCase())
-  );
-  currentPage.value = 1;
-  return filtered;
-});
-
-const currentRows = computed(() => {
-  const begin = (currentPage.value - 1) * perPage.value;
-  const end = Math.min(begin + perPage.value, filteredNations.value.length);
-  return filteredNations.value.slice(begin, end);
-});
-
 const previousButtonStatus = computed(() => {
-  if (currentPage.value == 1) return false;
+  if (pagination.value.pageCurrent == 1) return false;
   return true;
 });
 
 const nextButtonStatus = computed(() => {
-  if (currentPage.value * perPage.value >= filteredNations.value.length)
-    return false;
+  if (pagination.value.pageCurrent == pagination.value.pageTotal) return false;
   return true;
 });
 
-function changePage(value) {
-  currentPage.value += value;
+async function changePage(value) {
+  await getData(pagination.value.pageCurrent + value);
 }
 
-function goFirstPage() {
-  currentPage.value = 1;
+async function goFirstPage() {
+  await getData(1);
 }
 
-function goLastPage() {
-  currentPage.value = Math.ceil(filteredNations.value.length / perPage.value);
+async function goLastPage() {
+  await getData(pagination.value.pageTotal);
 }
+
+watch(filter, async (newFilter, oldFilter) => {
+  await getData(1);
+})
 </script>
 
 <template>
   <br />
   <div class="searchRow">
-    <label class="align-top float-left ml-5 font-weight-bold mt-2">Search by Name: </label>
-    <input class="form-control align-top float-left ml-2" style="width: 200px" type="text" v-model="searchByName" />
+    <div style="margin-left: 25%; width: 250px; position: relative">
+      <div class="fg-search">
+        <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
+      </div>
+      <input class="shadow rounded form-control align-top float-left" type="text" v-model="filter.name"
+        placeholder="Search..." />
+    </div>
   </div>
-  <table class="shadow mt-2" style="width: 95%; padding: 10px;">
+  <table class="shadow mt-2" style="width: 50%; padding: 10px;">
     <thead>
       <tr>
         <th width="150"></th>
@@ -133,18 +78,21 @@ function goLastPage() {
       </tr>
     </thead>
     <tbody>
-      <tr v-for="nation in currentRows">
+      <tr v-for="nation in nations">
         <td><img :src="nation.flag" width="50" class="ml-3" /></td>
-        <td style="font-size: 18px;">{{ nation.name }}</td>
+        <td style="font-size: 18px;">
+          <router-link :to="{ name: 'nation-detail', params: { id: nation.id } }">
+            {{ nation.name }}
+          </router-link>
+        </td>
       </tr>
-      <tr v-for="i in perPage - currentRows.length">
-        <td></td>
-        <td></td>
+      <tr v-for="i in pagination.itemsPerPage - nations.length">
+        <td colspan="2"></td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
-        <td v-if="filteredNations.length > 0" colspan="4">
+        <td v-if="nations.length > 0" colspan="2">
           <div style="float: right; margin: 0px 20px">
             <TableButton @click="goFirstPage()" :buttonStatus="previousButtonStatus">
               &laquo;
@@ -160,7 +108,7 @@ function goLastPage() {
             </TableButton>
           </div>
           <span style="float: right; margin: 10px 10px">
-            {{ firstRow + 1 }} - {{ lastRow }} of {{ filteredNations.length }}
+            {{ firstRow + 1 }} - {{ lastRow }} of {{ pagination.countTotal }}
           </span>
         </td>
       </tr>
@@ -243,5 +191,18 @@ table th {
 
 .searchRow {
   height: 50px;
+}
+
+.fg-search {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 20px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 10px 15px;
+  z-index: 2;
 }
 </style>

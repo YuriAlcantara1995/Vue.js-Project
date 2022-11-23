@@ -17,6 +17,6 @@
 
 <style scoped>
 .bc-light-blue {
-    background-image: linear-gradient(180deg, white 0%, #F0F8FF 100%);
+    background-color: #F0F8FF;
 }
 </style>
