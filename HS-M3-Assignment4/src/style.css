@@ -9,11 +9,3 @@ html, body {
     text-align: center;
     height: 100%;
 }
-
-.async-component {
-    border: 1px solid rgb(200, 200, 200);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    margin: 15px;
-}

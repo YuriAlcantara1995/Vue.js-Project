@@ -3,7 +3,7 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import { ref, computed, watch, reactive } from 'vue';
 import TableButton from '../utils/TableButton.vue';
-import dataService from '../../utils/dataService.js';
+import dataService from '../../services/dataService.js';
 
 const nations = ref([]);
 const pagination = ref({});
@@ -53,10 +53,11 @@ async function goFirstPage() {
 async function goLastPage() {
   await getData(pagination.value.pageTotal);
 }
-
+/*
 watch(filter, async (newFilter, oldFilter) => {
   await getData(1);
 })
+*/
 </script>
 
 <template>
@@ -66,7 +67,7 @@ watch(filter, async (newFilter, oldFilter) => {
       <div class="fg-search">
         <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
       </div>
-      <input class="shadow rounded form-control align-top float-left" type="text" v-model="filter.name"
+      <input @input="getData(1)" class="shadow rounded form-control align-top float-left" type="text" v-model="filter.name"
         placeholder="Search..." />
     </div>
   </div>
@@ -75,24 +76,26 @@ watch(filter, async (newFilter, oldFilter) => {
       <tr>
         <th width="150"></th>
         <th>Name</th>
+        <th>Average Rating</th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="nation in nations">
         <td><img :src="nation.flag" width="50" class="ml-3" /></td>
-        <td style="font-size: 18px;">
+        <td>
           <router-link :to="{ name: 'nation-detail', params: { id: nation.id } }">
             {{ nation.name }}
           </router-link>
         </td>
+        <td>{{nation.averageRating}}</td>
       </tr>
       <tr v-for="i in pagination.itemsPerPage - nations.length">
-        <td colspan="2"></td>
+        <td colspan="3"></td>
       </tr>
     </tbody>
     <tfoot>
       <tr>
-        <td v-if="nations.length > 0" colspan="2">
+        <td v-if="nations.length > 0" colspan="3">
           <div style="float: right; margin: 0px 20px">
             <TableButton @click="goFirstPage()" :buttonStatus="previousButtonStatus">
               &laquo;
@@ -155,7 +158,7 @@ tr {
 
 th {
   font-family: OpenSans-Regular;
-  font-size: 18px;
+  font-size: 22px;
   color: #fff;
   line-height: 1.2;
   font-weight: unset;
@@ -185,7 +188,8 @@ tbody tr:nth-child(even) {
 
 table td,
 table th {
-  text-align: left;
+  text-align: center;
+  font-size: 20px;
   padding-left: 8px;
 }
 

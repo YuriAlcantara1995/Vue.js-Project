@@ -3,8 +3,10 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import { ref, computed, watch, reactive } from 'vue';
 import TableButton from '../utils/TableButton.vue';
-import dataService from '../../utils/dataService.js';
+import dataService from '../../services/dataService.js';
+import Loading from '../utils/Loading.vue';
 
+const loading = ref(true);
 const players = ref([]);
 const pagination = ref({});
 const filter = reactive({
@@ -15,9 +17,11 @@ const filter = reactive({
 });
 
 async function getData(page = 1) {
+    loading.value = true;
     let response = await dataService.searchPlayersOffline(page, filter);
     pagination.value = response.pagination;
     players.value = response.items;
+    loading.value = false;
 }
 
 await getData();
@@ -56,40 +60,56 @@ async function goFirstPage() {
 async function goLastPage() {
     await getData(pagination.value.pageTotal);
 }
-
+/*
 watch(filter, async (newFilter, oldFilter) => {
     await getData(1);
 })
+*/
 </script>
 
 <template>
     <br />
-    <div class="searchRow">
-        <div style="margin-left: 5%; width: 250px; position: relative">
-            <div class="fg-search">
-                <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
-            </div>
-            <input class="shadow rounded form-control align-top float-left" type="text" v-model="filter.name"
-                placeholder="Search..." />
-        </div>
+    <div class="searchRow d-flex p-2 mb-2">
+        <input style="margin-left: 5%; width: 250px; position: relative"
+            class="shadow rounded form-control align-top float-left" type="text" v-model="filter.name"
+            placeholder="Name" />
         <label class="float-left ml-5 mt-2">Minimum Rating:</label>
         <input class="shadow rounded form-control align-top float-left ml-2" type="number" min="0" max="100"
             v-model="filter.ratingMin" style="width: 100px;" />
         <label class="float-left ml-5 mt-2">Maximum Rating:</label>
         <input class="shadow rounded form-control align-top float-left ml-2" type="number" min="0" max="100"
             v-model="filter.ratingMax" style="width: 100px;" />
+        <label class="float-left ml-5 mt-2">Position:</label>
+        <select class="ml-2" name="position" id="position" style="width: 250px; height: 40px;"
+            v-model="filter.position">
+            <option value="">All</option>
+            <option value="GK">GoalKeeper</option>
+            <option value="CB">Centre back</option>
+            <option value="RB">Right back</option>
+            <option value="LB">Left back</option>
+            <option value="CDM">Centre defensive midfielder</option>
+            <option value="CM">Centre midfielder</option>
+            <option value="RM">Right midfielder</option>
+            <option value="LM">Left midfielder</option>
+            <option value="CAM">Centre attacking midfielder</option>
+            <option value="RW">Right Winger</option>
+            <option value="LW">Left winger</option>
+            <option value="ST">Striker</option>
+            <option value="CF">Centre forward</option>
+        </select>
+        <button class="btn btn-primary ml-5 filter-button" @click="getData(1)">Filter</button>
     </div>
     <table class="shadow mt-2" style="width: 90%; padding: 10px;">
         <thead>
             <tr>
                 <th width="150"></th>
                 <th>Name</th>
+                <th>Rating</th>
                 <th>Position</th>
                 <th>Age</th>
                 <th>Height</th>
                 <th>Weight</th>
                 <th>Foot</th>
-                <th>Rating</th>
                 <th>Pace</th>
                 <th>Shooting</th>
                 <th>Passing</th>
@@ -98,7 +118,7 @@ watch(filter, async (newFilter, oldFilter) => {
                 <th>Physicality</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody v-if="!loading">
             <tr v-for="player in players">
                 <td><img :src="player.image" width="50" class="ml-3" /></td>
                 <td style="font-size: 18px;">
@@ -106,12 +126,12 @@ watch(filter, async (newFilter, oldFilter) => {
                         {{ player.name }}
                     </router-link>
                 </td>
+                <td style="font-size: 18px;">{{ player.rating }}</td>
                 <td style="font-size: 18px;">{{ player.position }}</td>
                 <td style="font-size: 18px;">{{ player.age }}</td>
                 <td style="font-size: 18px;">{{ player.height }}</td>
                 <td style="font-size: 18px;">{{ player.weight }}</td>
                 <td style="font-size: 18px;">{{ player.foot }}</td>
-                <td style="font-size: 18px;">{{ player.rating }}</td>
                 <td style="font-size: 18px;">{{ player.pace }}</td>
                 <td style="font-size: 18px;">{{ player.shooting }}</td>
                 <td style="font-size: 18px;">{{ player.passing }}</td>
@@ -120,13 +140,22 @@ watch(filter, async (newFilter, oldFilter) => {
                 <td style="font-size: 18px;">{{ player.physicality }}</td>
             </tr>
             <tr v-for="i in pagination.itemsPerPage - players.length">
-                <td colspan="13"></td>
+                <td colspan="14"></td>
             </tr>
         </tbody>
-
+        <tbody v-else>
+            <tr>
+                <td colspan="14">
+                    <div class="d-flex justify-content-center align-items-center"
+                        style="height: 570px; width: 100%;">
+                        <Loading />
+                    </div>
+                </td>
+            </tr>
+        </tbody>
         <tfoot>
             <tr>
-                <td v-if="players.length > 0" colspan="13">
+                <td v-if="players.length > 0" colspan="14">
                     <div style="float: right; margin: 0px 20px">
                         <TableButton @click="goFirstPage()" :buttonStatus="previousButtonStatus">
                             &laquo;
@@ -238,5 +267,10 @@ table th {
     right: 0;
     padding: 10px 15px;
     z-index: 2;
+}
+
+.filter-button {
+    background-color: #1C3260;
+    height: 40px;
 }
 </style>

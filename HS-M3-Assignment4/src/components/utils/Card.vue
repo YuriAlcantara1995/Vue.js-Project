@@ -2,43 +2,72 @@
 import { ref } from 'vue';
 
 const props = defineProps({
-  player: Object
+    player: Object
 });
 </script>
 
 <template>
-  <div class="player_card">
-    <img class="player_image" :src="player.image" />
-    <div class="player_name">
-      <span>{{ player.name }}</span>
+    <div class="shadow-lg player_card">
+        <img class="player_image" :src="player.image" />
+        <div class="player_name">
+            <span>{{ player.name }}</span>
+        </div>
+        <div class="row mt-3">
+            <div class="col-4">
+                AGE
+            </div>
+            <div class="col-4">
+                POSITION
+            </div>
+            <div class="col-4">
+                RATING
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                {{ player.age }}
+            </div>
+            <div class="col-4">
+                {{ player.position }}
+            </div>
+            <div class="col-4">
+                {{ player.rating }}
+            </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
 .player_card {
-  display: inline-block;
-  width: 320px;
-  height: 500px;
-  margin: 20px;
-  overflow: hidden;
-  border-radius: 20px;
-  transition: all 0.4s;
-  box-shadow: 0px 0px 60px -25px rgba(0, 0, 0, 0.5);
-  background-color: whitesmoke;
+    display: inline-block;
+    width: 320px;
+    height: 500px;
+    margin: 20px;
+    overflow: hidden;
+    border-radius: 20px;
+    transition: all 0.4s;
+    background: radial-gradient(
+    circle at 18.7% 37.8%,
+    rgb(250, 250, 250) 0%,
+    rgb(225, 234, 238) 90%
+  );
+    color: #1C3260;
+    font-size: 18px;
 }
+
 .player_image {
-  width: 90%;
-  height: 75%;
-  border-radius: 10px;
-  margin-top: 10px;
+    width: 90%;
+    height: 75%;
+    border-radius: 10px;
 }
+
 .player_name {
-  text-align: center;
-  font-size: 18px;
-  margin-top: 10px;
+    text-align: center;
+    font-size: 28px;
+    margin-top: 0px;
 }
+
 input {
-  margin: 10px;
+    margin: 10px;
 }
 </style>
