@@ -4,7 +4,6 @@ import Card from '../utils/Card.vue';
 import Flag from '../utils/Flag.vue';
 import Loading from '../utils/Loading.vue';
 import dataService from '../../services/dataService.js';
-import router from '../../router';
 
 const props = defineProps({ nationId: { type: String, required: true } });
 const players = ref([]);

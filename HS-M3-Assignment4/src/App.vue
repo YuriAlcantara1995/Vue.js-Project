@@ -1,6 +1,7 @@
 <script setup>
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
+import router from './router';
 </script>
 
 <template>

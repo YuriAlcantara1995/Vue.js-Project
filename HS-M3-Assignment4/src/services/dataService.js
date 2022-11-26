@@ -59,30 +59,6 @@ async function searchNationsOffline(page = 1, filter = {}) {
         response.items[i].averageRating = getAverageNationRating(response.items[i].id);
     }
 
-    //response = getFlags(response);
-
-    return response;
-}
-
-async function getFlags(response) {
-
-    for (let i = 0; i < response.items.length; i++) {
-        let id = response.items[i].id;
-        try {
-            let res = await fetch(urlBase + 'nations/' + id.toString() + '/image', imageOptions);
-            if (!res.ok) {
-                throw new Error();
-            }
-            const imageBlob = await res.blob();
-            const imageObjectURL = URL.createObjectURL(imageBlob);
-            response.items[i].flag = imageObjectURL;
-
-        } catch (e) {
-            response.items[i].flag = '';
-            console.log(e);
-        }
-    }
-
     return response;
 }
 
