@@ -1,10 +1,11 @@
 <script setup>
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
-import { ref, computed, watch, reactive } from 'vue';
+import { ref, computed, reactive } from 'vue';
 import TableButton from '../utils/TableButton.vue';
 import dataService from '../../services/dataService.js';
 import Loading from '../utils/Loading.vue';
+import Picture from '../utils/Picture.vue';
 
 const loading = ref(true);
 const players = ref([]);
@@ -22,6 +23,11 @@ async function getData(page = 1) {
     pagination.value = response.pagination;
     players.value = response.items;
     loading.value = false;
+    for (let i = 0; i < players.value.length; i++) {
+        dataService.getPlayerImage(players.value[i].id).then((result) => {
+            players.value[i].image = result;
+        });
+    }
 }
 
 await getData();
@@ -60,11 +66,6 @@ async function goFirstPage() {
 async function goLastPage() {
     await getData(pagination.value.pageTotal);
 }
-/*
-watch(filter, async (newFilter, oldFilter) => {
-    await getData(1);
-})
-*/
 </script>
 
 <template>
@@ -120,7 +121,15 @@ watch(filter, async (newFilter, oldFilter) => {
         </thead>
         <tbody v-if="!loading">
             <tr v-for="player in players">
-                <td><img :src="player.image" width="50" class="ml-3" /></td>
+                <td>
+                    <Suspense>
+                        <Picture :imageHeight="50" :imageWidth="50" :playerId="player.id">
+                        </Picture>
+                        <template #fallback>
+                            <Loading />
+                        </template>
+                    </Suspense>
+                </td>
                 <td style="font-size: 18px;">
                     <router-link :to="{ name: 'player-detail', params: { id: player.id } }">
                         {{ player.name }}
@@ -146,8 +155,7 @@ watch(filter, async (newFilter, oldFilter) => {
         <tbody v-else>
             <tr>
                 <td colspan="14">
-                    <div class="d-flex justify-content-center align-items-center"
-                        style="height: 570px; width: 100%;">
+                    <div class="d-flex justify-content-center align-items-center" style="height: 570px; width: 100%;">
                         <Loading />
                     </div>
                 </td>

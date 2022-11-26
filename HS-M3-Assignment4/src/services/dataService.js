@@ -152,33 +152,46 @@ async function searchPlayersOffline(page = 1, filter = {}) {
 
     response.items = players.slice(begin, end);
 
-    response = getImages(response);
-
     return response;
 }
 
-async function getImages(response) {
-    for (let i = 0; i < response.items.length; i++) {
-        let id = response.items[i].id;
-        try {
-            let res = await fetch(urlBase + 'players/' + id.toString() + '/image', imageOptions);
-            if (!res.ok) {
-                throw new Error();
-            }
-            const imageBlob = await res.blob();
-            const imageObjectURL = URL.createObjectURL(imageBlob);
-            response.items[i].image = imageObjectURL;
-
-        } catch (e) {
-            response.items[i].image = '';
-            console.log(e);
+async function getPlayerImage(id) {
+    let result = '';
+    try {
+        let res = await fetch(urlBase + 'players/' + id.toString() + '/image', imageOptions);
+        if (!res.ok) {
+            throw new Error();
         }
+        const imageBlob = await res.blob();
+        const imageObjectURL = URL.createObjectURL(imageBlob);
+        result = imageObjectURL;
+
+    } catch (e) {
+        result = '';
+        console.log(e);
     }
 
-    return response;
+    return result;
 }
 
+async function getNationFlag(id) {
+    let result = '';
+    try {
+        let res = await fetch(urlBase + 'nations/' + id.toString() + '/image', imageOptions);
+        if (!res.ok) {
+            throw new Error();
+        }
+        const imageBlob = await res.blob();
+        const imageObjectURL = URL.createObjectURL(imageBlob);
+        result = imageObjectURL;
 
+    } catch (e) {
+        result = '';
+        console.log(e);
+    }
+
+    return result;
+}
 
 async function getNationById(id) {
 
@@ -192,20 +205,6 @@ async function getNationById(id) {
 
     nation.averageRating = getAverageNationRating(id);
 
-    //Get Flag
-    try {
-        let res = await fetch(urlBase + 'nations/' + id.toString() + '/image', imageOptions);
-        if (!res.ok) {
-            throw new Error();
-        }
-        const imageBlob = await res.blob();
-        const imageObjectURL = URL.createObjectURL(imageBlob);
-        nation.flag = imageObjectURL;
-
-    } catch (e) {
-        nation.flag = '';
-        console.log(e);
-    }
     return nation;
 }
 
@@ -218,21 +217,6 @@ async function getPlayerById(id) {
     }
     let response = await res.json();
     let player = response.player;
-
-    //Get Image
-    try {
-        let res = await fetch(urlBase + 'players/' + id.toString() + '/image', imageOptions);
-        if (!res.ok) {
-            throw new Error();
-        }
-        const imageBlob = await res.blob();
-        const imageObjectURL = URL.createObjectURL(imageBlob);
-        player.image = imageObjectURL;
-
-    } catch (e) {
-        player.image = '';
-        console.log(e);
-    }
 
     return player;
 }
@@ -261,8 +245,6 @@ async function getPlayersByNationIdOffline(nationId) {
     let response = {};
     response.items = players.slice(0, Math.min(11, players.length));
 
-    response = getImages(response);
-
     return response;
 }
 
@@ -282,8 +264,10 @@ export default {
     getNations,
     searchNationsOffline,
     getNationById,
+    getNationFlag,
     getPlayers,
     searchPlayersOffline,
     getPlayerById,
+    getPlayerImage,
     getPlayersByNationIdOffline
 };

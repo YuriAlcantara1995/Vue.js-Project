@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from 'vue';
+import Picture from './Picture.vue';
+import Loading from './Loading.vue';
 
 const props = defineProps({
     player: Object
@@ -8,7 +9,14 @@ const props = defineProps({
 
 <template>
     <div class="shadow-lg player_card">
-        <img class="player_image" :src="player.image" />
+        <Suspense>
+            <Picture class="player_image" :imageHeight="700" :imageWidth="650" :playerId="player.id">
+            </Picture>
+            <template #fallback>
+                <Loading class="player_image"/>
+            </template>
+        </Suspense>
+
         <div class="player_name">
             <span>{{ player.name }}</span>
         </div>
@@ -46,11 +54,9 @@ const props = defineProps({
     overflow: hidden;
     border-radius: 20px;
     transition: all 0.4s;
-    background: radial-gradient(
-    circle at 18.7% 37.8%,
-    rgb(250, 250, 250) 0%,
-    rgb(225, 234, 238) 90%
-  );
+    background: radial-gradient(circle at 18.7% 37.8%,
+            rgb(250, 250, 250) 0%,
+            rgb(225, 234, 238) 90%);
     color: #1C3260;
     font-size: 18px;
 }

@@ -1,6 +1,9 @@
 <script setup>
 import { ref } from 'vue';
 import dataService from '../../services/dataService.js';
+import Flag from '../utils/Flag.vue';
+import Picture from '../utils/Picture.vue';
+import Loading from '../utils/Loading.vue';
 
 const props = defineProps({ playerId: { type: String, required: true } });
 const player = ref({});
@@ -9,6 +12,14 @@ const nation = ref({});
 try {
     player.value = await dataService.getPlayerById(props.playerId);
     nation.value = await dataService.getNationById(player.value.nation);
+
+    dataService.getPlayerImage(player.value.id).then((result) => {
+        player.value.image = result;
+    });
+    dataService.getNationFlag(nation.value.id).then((result) => {
+        nation.value.flag = result;
+    });
+
 } catch (e) {
     alert("Error fetching player detail");
 }
@@ -19,10 +30,22 @@ try {
 <template>
     <div class="d-flex p-2 h-100 home">
         <div class="d-flex flex-column p-2 justify-content-center w-50">
-            <img class="align-self-center" :src="player.image" width="650" height="700" />
+            <Suspense>
+                <Picture class="align-self-center" :imageHeight="700" :imageWidth="650" :playerId="player.id">
+                </Picture>
+                <template #fallback>
+                    <Loading class="align-self-center" />
+                </template>
+            </Suspense>
             <div class="d-flex p-2 mt-2 justify-content-center">
                 <h1 class="">{{ player.name }}</h1>
-                <img :src="nation.flag" width="80" height="50" class="ml-5" />
+                <Suspense>
+                    <Flag class="ml-5" :flag-height="50" :flag-width="80" :nation-id="nation.id">
+                    </Flag>
+                    <template #fallback>
+                        <Loading class="ml-5" />
+                    </template>
+                </Suspense>
             </div>
         </div>
         <div class="w-50 d-flex flex-column align-items-center justify-content-center">
@@ -80,7 +103,7 @@ try {
                         ATTACK WORK RATE
                     </div>
                     <div class="col-4 text-left ml-2">
-                        {{player.attackWorkRate}}
+                        {{ player.attackWorkRate }}
                     </div>
                 </div>
                 <div class="row w-100">
@@ -104,7 +127,7 @@ try {
                         SHOOTING
                     </div>
                     <div class="col-4 text-left ml-2">
-                        {{ player.shooting }} 
+                        {{ player.shooting }}
                     </div>
                 </div>
                 <div class="row w-100">

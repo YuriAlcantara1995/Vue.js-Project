@@ -1,8 +1,10 @@
 <script setup>
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
-import { ref, computed, watch, reactive } from 'vue';
+import { ref, computed, reactive } from 'vue';
 import TableButton from '../utils/TableButton.vue';
+import Flag from '../utils/Flag.vue';
+import Loading from '../utils/Loading.vue';
 import dataService from '../../services/dataService.js';
 
 const nations = ref([]);
@@ -15,6 +17,11 @@ async function getData(page = 1) {
   let response = await dataService.searchNationsOffline(page, filter);
   pagination.value = response.pagination;
   nations.value = response.items;
+  for (let i = 0; i < nations.value.length; i++) {
+    dataService.getNationFlag(nations.value[i].id).then((result) => {
+      nations.value[i].flag = result;
+    });
+  }
 }
 
 await getData();
@@ -67,8 +74,8 @@ watch(filter, async (newFilter, oldFilter) => {
       <div class="fg-search">
         <font-awesome-icon icon="fa-solid fa-magnifying-glass" />
       </div>
-      <input @input="getData(1)" class="shadow rounded form-control align-top float-left" type="text" v-model="filter.name"
-        placeholder="Search..." />
+      <input @input="getData(1)" class="shadow rounded form-control align-top float-left" type="text"
+        v-model="filter.name" placeholder="Search..." />
     </div>
   </div>
   <table class="shadow mt-2" style="width: 50%; padding: 10px;">
@@ -81,13 +88,21 @@ watch(filter, async (newFilter, oldFilter) => {
     </thead>
     <tbody>
       <tr v-for="nation in nations">
-        <td><img :src="nation.flag" width="50" class="ml-3" /></td>
+        <td>
+          <Suspense>
+            <Flag class="ml-3" :flag-height="40" :flag-width="50" :nation-id="nation.id">
+            </Flag>
+            <template class="ml-3" #fallback>
+              <Loading />
+            </template>
+          </Suspense>
+        </td>
         <td>
           <router-link :to="{ name: 'nation-detail', params: { id: nation.id } }">
             {{ nation.name }}
           </router-link>
         </td>
-        <td>{{nation.averageRating}}</td>
+        <td>{{ nation.averageRating }}</td>
       </tr>
       <tr v-for="i in pagination.itemsPerPage - nations.length">
         <td colspan="3"></td>
